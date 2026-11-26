@@ -1,9 +1,9 @@
 {
   "id": "self-contained-markdown-exporter",
-  "name": "Self-Contained Markdown Exporter",
+  "name": "FlatMD - Self Contained Exporter",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
   "description": "Copia o exporta una nota como Markdown autocontenido, con las imágenes locales incrustadas en Data URI.",
-  "author": "Fran",
+  "author": "FRXN",
   "isDesktopOnly": false
 }
