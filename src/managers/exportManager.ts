@@ -1,9 +1,12 @@
-import { Modal, Notice, Setting, TFile, TFolder, normalizePath, type App } from "obsidian";
+import { Modal, Notice, Platform, requireApiVersion, Setting, TFile, TFolder, normalizePath, type App } from "obsidian";
 import {
   defaultSystemPath,
   ensureMarkdownExtension,
   firstFreeFileName,
+  joinFilePath,
   refusesSourceOverwrite,
+  resolveFromBase,
+  splitFilePath,
   vaultFilePath,
 } from "./exportPaths.ts";
 import { vaultBasePath } from "../resolvers/vaultLookup.ts";
@@ -86,22 +89,20 @@ async function writeOutsideVault(
   markdown: string,
   sourcePath: string,
 ): Promise<{ path: string } | null> {
-  const pathModule = nodePath();
-  const fsModule = nodeFs();
-  if (!pathModule || !fsModule) {
+  const fsModule = desktopFileSystem();
+  if (!fsModule) {
     throw new Error("No se puede guardar fuera del vault en este dispositivo.");
   }
 
   const base = vaultBasePath(app);
-  if (base && sameFile(pathModule.resolve(base, sourcePath), pathModule.resolve(absolutePath))) {
+  if (base && sameFile(resolveFromBase(base, sourcePath), absolutePath)) {
     throw new Error("El destino coincide con la nota abierta. Elige otro nombre o carpeta.");
   }
 
-  const directory = pathModule.dirname(absolutePath);
-  const fileName = pathModule.basename(absolutePath);
+  const { directory, fileName } = splitFilePath(absolutePath);
   const chosenName = await chooseAvailableFileName(app, absolutePath, fileName, async (candidate) => {
     try {
-      await fsModule.promises.access(pathModule.join(directory, candidate));
+      await fsModule.promises.access(joinFilePath(directory, candidate));
       return true;
     } catch {
       return false;
@@ -109,9 +110,12 @@ async function writeOutsideVault(
   });
   if (!chosenName) return null;
 
-  const finalPath = chosenName === fileName ? absolutePath : pathModule.join(directory, chosenName);
+  const finalPath = chosenName === fileName ? absolutePath : joinFilePath(directory, chosenName);
+  const destination = splitFilePath(finalPath);
   try {
-    await fsModule.promises.mkdir(pathModule.dirname(finalPath), { recursive: true });
+    if (destination.directory) {
+      await fsModule.promises.mkdir(destination.directory, { recursive: true });
+    }
     await fsModule.promises.writeFile(finalPath, markdown, "utf8");
   } catch (error) {
     throw new Error(describeFileError(error));
@@ -319,8 +323,9 @@ class OverwriteModal extends Modal {
         });
       })
       .addButton((button) => {
-        // setWarning still exists on Obsidian 1.5. setDestructive arrived later.
-        button.setButtonText("Sobrescribir").setWarning().onClick(() => {
+        button.setButtonText("Sobrescribir");
+        if (requireApiVersion("1.13.0")) button.setDestructive();
+        button.onClick(() => {
           this.finish("overwrite");
         });
       })
@@ -347,6 +352,7 @@ class OverwriteModal extends Modal {
 }
 
 function electronDialog(): ElectronDialog | null {
+  if (!Platform.isDesktopApp) return null;
   try {
     const electron = require("electron") as ElectronModule;
     return electron.dialog ?? electron.remote?.dialog ?? null;
@@ -355,17 +361,19 @@ function electronDialog(): ElectronDialog | null {
   }
 }
 
-function nodeFs(): typeof import("node:fs") | null {
-  try {
-    return require("fs") as typeof import("node:fs");
-  } catch {
-    return null;
-  }
+interface DesktopFileSystem {
+  promises: {
+    access(filePath: string): Promise<void>;
+    mkdir(filePath: string, options: { recursive: boolean }): Promise<void>;
+    writeFile(filePath: string, data: string, encoding: "utf8"): Promise<void>;
+  };
 }
 
-function nodePath(): typeof import("node:path") | null {
+function desktopFileSystem(): DesktopFileSystem | null {
+  // Node's fs is absent on mobile. The require runs only in the desktop app.
+  if (!Platform.isDesktopApp) return null;
   try {
-    return require("path") as typeof import("node:path");
+    return require("fs") as DesktopFileSystem;
   } catch {
     return null;
   }

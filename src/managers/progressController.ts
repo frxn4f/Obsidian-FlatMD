@@ -24,8 +24,9 @@ export class ProgressController {
     if (!justOpened) return Promise.resolve();
 
     // Let the dialog paint before the next file is read.
+    // window.setTimeout follows the window that owns this call, including a popout.
     return new Promise((resolve) => {
-      setTimeout(resolve, 0);
+      window.setTimeout(resolve, 0);
     });
   }
 

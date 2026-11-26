@@ -1,3 +1,5 @@
+import { Platform } from "obsidian";
+
 declare function require(moduleName: string): unknown;
 
 interface ElectronClipboard {
@@ -25,6 +27,7 @@ export async function copyText(text: string): Promise<void> {
 }
 
 function copyWithElectron(text: string): boolean {
+  if (!Platform.isDesktopApp) return false;
   try {
     const electron = require("electron") as ElectronClipboard;
     if (!electron.clipboard) return false;

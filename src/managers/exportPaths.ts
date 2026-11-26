@@ -59,6 +59,23 @@ export function suffixedFileName(fileName: string, suffix: number): string {
   return `${markdown.slice(0, -3)}-${suffix}.md`;
 }
 
+export function splitFilePath(filePath: string): { directory: string; fileName: string } {
+  const slash = Math.max(filePath.lastIndexOf("/"), filePath.lastIndexOf("\\"));
+  if (slash < 0) return { directory: "", fileName: filePath };
+  return { directory: filePath.slice(0, slash), fileName: filePath.slice(slash + 1) };
+}
+
+export function joinFilePath(directory: string, name: string): string {
+  if (!directory) return name;
+  const separator = directory.includes("\\") && !directory.includes("/") ? "\\" : "/";
+  return `${directory.replace(/[\\/]+$/, "")}${separator}${name}`;
+}
+
+export function resolveFromBase(base: string, relativePath: string): string {
+  const child = relativePath.replaceAll("\\", "/").replace(/^\/+/, "");
+  return joinFilePath(base, child);
+}
+
 export function defaultSystemPath(vaultBasePath: string | null, folder: string, fileName: string): string {
   const safeName = ensureMarkdownExtension(sanitizeFileName(fileName) || "nota");
   if (!vaultBasePath) return safeName;

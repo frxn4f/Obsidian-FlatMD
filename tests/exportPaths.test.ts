@@ -4,7 +4,10 @@ import {
   buildExportFileName,
   defaultSystemPath,
   firstFreeFileName,
+  joinFilePath,
   refusesSourceOverwrite,
+  resolveFromBase,
+  splitFilePath,
   vaultFilePath,
 } from "../src/managers/exportPaths.ts";
 
@@ -30,6 +33,13 @@ describe("export paths", () => {
     const taken = new Set(["nota.md", "nota-2.md"]);
     const free = await firstFreeFileName("nota.md", async (candidate) => taken.has(candidate));
     assert.equal(free, "nota-3.md");
+  });
+
+  it("joins a desktop path without the Node path module", () => {
+    assert.deepEqual(splitFilePath("C:\\Notas\\nota.md"), { directory: "C:\\Notas", fileName: "nota.md" });
+    assert.equal(joinFilePath("C:\\Notas", "nota-2.md"), "C:\\Notas\\nota-2.md");
+    assert.equal(resolveFromBase("/vault", "carpeta/nota.md"), "/vault/carpeta/nota.md");
+    assert.equal(splitFilePath("nota.md").directory, "");
   });
 
   it("places the system dialog next to the vault folder", () => {

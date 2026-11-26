@@ -16,7 +16,8 @@ describe("repositorio", () => {
     assert.equal(versions[version], manifest.minAppVersion);
     assert.match(changelog, new RegExp(`## ${version.replaceAll(".", "\\.")}`));
     assert.equal(manifest.id, "self-contained-markdown-exporter");
-    assert.equal(manifest.name, "Self-Contained Markdown Exporter");
+    assert.equal(manifest.name, "FlatMD - Self Contained Exporter");
+    assert.equal(manifest.author, "FRXN");
     assert.equal(manifest.isDesktopOnly, false);
     assert.equal(pkg.private, true);
   });

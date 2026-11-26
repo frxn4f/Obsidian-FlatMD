@@ -1,0 +1,27 @@
+node_modules/
+
+# Build del plugin. Se genera con npm run build.
+main.js
+main.js.map
+release/
+
+# Entornos y secretos locales
+.env
+.env.*
+*.local
+
+# Cachés y registros
+*.log
+.eslintcache
+npm-debug.log*
+coverage/
+
+# Copias locales de un vault usadas al probar a mano
+.obsidian/
+
+# Editores y sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
