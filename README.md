@@ -1,4 +1,4 @@
-# Self-Contained Markdown Exporter
+# FlatMD - Self-Contained Exporter
 
 Copia o exporta la nota activa de Obsidian como un Markdown que lleva consigo sus imágenes locales. Esas imágenes se convierten en Data URIs. La nota abierta y el resto de archivos del vault no se modifican.
 
