@@ -27,13 +27,15 @@ export async function copyText(text: string): Promise<void> {
 }
 
 function copyWithElectron(text: string): boolean {
-  if (!Platform.isDesktopApp) return false;
-  try {
-    const electron = require("electron") as ElectronClipboard;
-    if (!electron.clipboard) return false;
-    electron.clipboard.writeText(text);
-    return true;
-  } catch {
-    return false;
+  if (Platform.isDesktop) {
+    try {
+      const electron = require("electron") as ElectronClipboard;
+      if (!electron.clipboard) return false;
+      electron.clipboard.writeText(text);
+      return true;
+    } catch {
+      return false;
+    }
   }
+  return false;
 }
