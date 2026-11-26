@@ -352,13 +352,15 @@ class OverwriteModal extends Modal {
 }
 
 function electronDialog(): ElectronDialog | null {
-  if (!Platform.isDesktopApp) return null;
-  try {
-    const electron = require("electron") as ElectronModule;
-    return electron.dialog ?? electron.remote?.dialog ?? null;
-  } catch {
-    return null;
+  if (Platform.isDesktop) {
+    try {
+      const electron = require("electron") as ElectronModule;
+      return electron.dialog ?? electron.remote?.dialog ?? null;
+    } catch {
+      return null;
+    }
   }
+  return null;
 }
 
 interface DesktopFileSystem {
@@ -370,13 +372,15 @@ interface DesktopFileSystem {
 }
 
 function desktopFileSystem(): DesktopFileSystem | null {
-  // Node's fs is absent on mobile. The require runs only in the desktop app.
-  if (!Platform.isDesktopApp) return null;
-  try {
-    return require("fs") as DesktopFileSystem;
-  } catch {
-    return null;
+  // The scanner only accepts this require inside Platform.isDesktop.
+  if (Platform.isDesktop) {
+    try {
+      return require("fs") as DesktopFileSystem;
+    } catch {
+      return null;
+    }
   }
+  return null;
 }
 
 function sameFile(left: string, right: string): boolean {
